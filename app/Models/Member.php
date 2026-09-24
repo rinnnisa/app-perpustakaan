@@ -2,12 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-// File: app/Models/Member.php
 class Member extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'nama', 'nim', 'email', 'nomor_telepon', 'alamat', 'status',
+        'nim',
+        'nama',
+        'email',
+        'nomor_telepon',
+        'alamat',
     ];
 }
