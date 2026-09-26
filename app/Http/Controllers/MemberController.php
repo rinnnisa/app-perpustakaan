@@ -2,24 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreMemberRequest;
 use App\Models\Member;
 use Illuminate\Http\Request;
 
 class MemberController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $query = Member::query();
-
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
-            $query->where('nama', 'like', "%{$search}%")
-                  ->orWhere('nim', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('nomor_telepon', 'like', "%{$search}%");
-        }
-
-        $members = $query->paginate(10);
+        $members = Member::when(request('search'), fn ($query, $search) => $query->where('nama', 'like', "%{$search}%"))
+            ->paginate(10);
 
         return view('members.index', compact('members'));
     }
@@ -29,15 +21,9 @@ class MemberController extends Controller
         return view('members.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreMemberRequest $request)
     {
-        $validated = $request->validate([
-            'nim' => 'required|string|max:20|unique:members,nim',
-            'nama' => 'required|string|max:100',
-            'email' => 'required|email|unique:members,email',
-            'nomor_telepon' => 'required|string|max:15',
-            'alamat' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         Member::create($validated);
 
@@ -64,11 +50,12 @@ class MemberController extends Controller
         $member = Member::findOrFail($id);
 
         $validated = $request->validate([
-            'nim' => 'required|string|max:20|unique:members,nim,' . $id,
             'nama' => 'required|string|max:100',
-            'email' => 'required|email|unique:members,email,' . $id,
+            'nim' => "required|string|max:20|unique:members,nim,{$id}",
+            'email' => "required|email|max:100|unique:members,email,{$id}",
             'nomor_telepon' => 'required|string|max:15',
-            'alamat' => 'nullable|string',
+            'alamat' => 'required|string',
+            'status' => 'required|in:aktif,nonaktif',
         ]);
 
         $member->update($validated);
@@ -83,6 +70,6 @@ class MemberController extends Controller
         $member->delete();
 
         return redirect()->route('members.index')
-            ->with('success', 'Anggota berhasil dihapus.');
+            ->with('success', 'Data anggota berhasil dihapus.');
     }
 }
