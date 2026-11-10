@@ -17,7 +17,6 @@ Route::resource('loans', LoanController::class);
 Route::put('/loans/{id}/kembalikan', [LoanController::class, 'kembalikan'])
     ->name('loans.kembalikan');
 
-// Tugas Route Group Admin (Pertemuan 2)
 Route::prefix('admin')->group(function () {
     Route::get('/info', function () {
         return 'Halaman Informasi Admin Perpustakaan';
