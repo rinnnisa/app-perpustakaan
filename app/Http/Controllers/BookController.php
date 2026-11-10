@@ -23,12 +23,13 @@ class BookController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
             'judul' => 'required|string|max:255',
-            'penulis' => 'required|string|max:100',
-            'penerbit' => 'required|string|max:100',
-            'tahun_terbit' => 'required|integer|min:1900|max:' . date('Y'),
+            'penulis' => 'required|string|max:255',
+            'penerbit' => 'required|string|max:255',
+            'tahun_terbit' => 'required|digits:4|integer',
+            'isbn' => 'nullable|string|max:20',
             'stok' => 'required|integer|min:0',
+            'category_id' => 'required|exists:categories,id',
         ]);
 
         Book::create($validated);
@@ -37,41 +38,38 @@ class BookController extends Controller
             ->with('success', "Buku \"{$validated['judul']}\" berhasil ditambahkan.");
     }
 
-    public function show(string $id)
+    public function show(Book $book)
     {
-        $book = Book::with('category')->findOrFail($id);
+        $book->load('category');
         return view('books.show', compact('book'));
     }
 
-    public function edit(string $id)
+    public function edit(Book $book)
     {
-        $book = Book::findOrFail($id);
         $categories = Category::all();
-        return view('books.edit', compact('categories', 'book'));
+        return view('books.edit', compact('book', 'categories'));
     }
 
-    public function update(Request $request, string $id)
+    public function update(Request $request, Book $book)
     {
-        $book = Book::findOrFail($id);
-
         $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
             'judul' => 'required|string|max:255',
-            'penulis' => 'required|string|max:100',
-            'penerbit' => 'required|string|max:100',
-            'tahun_terbit' => 'required|integer|min:1900|max:' . date('Y'),
+            'penulis' => 'required|string|max:255',
+            'penerbit' => 'required|string|max:255',
+            'tahun_terbit' => 'required|digits:4|integer',
+            'isbn' => 'nullable|string|max:20',
             'stok' => 'required|integer|min:0',
+            'category_id' => 'required|exists:categories,id',
         ]);
 
         $book->update($validated);
 
         return redirect()->route('books.index')
-            ->with('success', "Buku \"{$validated['judul']}\" berhasil diperbarui.");
+            ->with('success', "Data buku \"{$validated['judul']}\" berhasil diperbarui.");
     }
 
-    public function destroy(string $id)
+    public function destroy(Book $book)
     {
-        $book = Book::findOrFail($id);
         $book->delete();
 
         return redirect()->route('books.index')

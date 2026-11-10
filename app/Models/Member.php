@@ -15,5 +15,6 @@ class Member extends Model
         'email',
         'nomor_telepon',
         'alamat',
+        'status',
     ];
 }

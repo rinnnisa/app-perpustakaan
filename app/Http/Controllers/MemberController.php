@@ -45,31 +45,23 @@ class MemberController extends Controller
         return view('members.edit', compact('member'));
     }
 
-    public function update(Request $request, string $id)
-    {
-        $member = Member::findOrFail($id);
+public function update(Request $request, Member $member)
+{
+    $validated = $request->validate([
+        'nama' => 'required|string|max:255',
+        'nim' => 'required|string|max:20|unique:members,nim,' . $member->id,
+        'email' => 'required|email|unique:members,email,' . $member->id,
+        'nomor_telepon' => 'nullable|string|max:20',
+        'alamat' => 'nullable|string',
+        'status' => 'required|string',
+    ]);
 
-        $validated = $request->validate([
-            'nama' => 'required|string|max:100',
-            'nim' => "required|string|max:20|unique:members,nim,{$id}",
-            'email' => "required|email|max:100|unique:members,email,{$id}",
-            'nomor_telepon' => 'required|string|max:15',
-            'alamat' => 'required|string',
-            'status' => 'required|in:aktif,nonaktif',
-        ]);
+    // Konversi status ke format huruf kecil agar lolos batasan CHECK SQLite ('aktif' / 'nonaktif')
+    $validated['status'] = strtolower($request->status);
 
-        $member->update($validated);
+    $member->update($validated);
 
-        return redirect()->route('members.index')
-            ->with('success', "Data anggota \"{$validated['nama']}\" berhasil diperbarui.");
-    }
-
-    public function destroy(string $id)
-    {
-        $member = Member::findOrFail($id);
-        $member->delete();
-
-        return redirect()->route('members.index')
-            ->with('success', 'Data anggota berhasil dihapus.');
-    }
+    return redirect()->route('members.index')
+        ->with('success', "Data anggota \"{$member->nama}\" berhasil diperbarui.");
+}
 }

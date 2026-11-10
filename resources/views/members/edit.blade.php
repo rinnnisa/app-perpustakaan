@@ -50,15 +50,12 @@
             @enderror
         </div>
 
-        <div style="margin-bottom: 18px;">
-            <label for="status" style="display: block; font-weight: bold; margin-bottom: 4px;">Status</label>
-            <select name="status" id="status" style="width: 100%; padding: 8px; box-sizing: border-box;">
-                <option value="aktif" @selected(old('status', $member['status']) == 'aktif')>Aktif</option>
-                <option value="nonaktif" @selected(old('status', $member['status']) == 'nonaktif')>Nonaktif</option>
+        <div style="margin-bottom: 16px;">
+            <label for="status" style="display: block; margin-bottom: 6px; font-weight: 600;">Status</label>
+            <select name="status" id="status" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                <option value="aktif" {{ (old('status', strtolower($member->status)) == 'aktif') ? 'selected' : '' }}>Aktif</option>
+                <option value="nonaktif" {{ (old('status', strtolower($member->status)) == 'nonaktif') ? 'selected' : '' }}>Nonaktif</option>
             </select>
-            @error('status')
-                <div style="color: #b91c1c; font-size: 14px; margin-top: 4px;">{{ $message }}</div>
-            @enderror
         </div>
 
         <button type="submit" class="btn">Perbarui</button>

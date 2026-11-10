@@ -2,74 +2,56 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreMemberRequest;
-use App\Models\Member;
+use App\Models\Category;
 use Illuminate\Http\Request;
 
-class MemberController extends Controller
+class CategoryController extends Controller
 {
     public function index()
     {
-        $members = Member::when(request('search'), fn ($query, $search) => $query->where('nama', 'like', "%{$search}%"))
-            ->paginate(10);
-
-        return view('members.index', compact('members'));
+        $categories = Category::all();
+        return view('categories.index', compact('categories'));
     }
 
     public function create()
     {
-        return view('members.create');
+        return view('categories.create');
     }
 
-    public function store(StoreMemberRequest $request)
+    public function store(Request $request)
     {
-        $validated = $request->validated();
-
-        Member::create($validated);
-
-        return redirect()->route('members.index')
-            ->with('success', "Anggota \"{$validated['nama']}\" berhasil ditambahkan.");
-    }
-
-    public function show(string $id)
-    {
-        $member = Member::findOrFail($id);
-
-        return view('members.show', compact('member'));
-    }
-
-    public function edit(string $id)
-    {
-        $member = Member::findOrFail($id);
-
-        return view('members.edit', compact('member'));
-    }
-
-    public function update(Request $request, string $id)
-    {
-        $member = Member::findOrFail($id);
-
         $validated = $request->validate([
-            'nama' => 'required|string|max:100',
-            'nim' => "required|string|max:20|unique:members,nim,{$id}",
-            'email' => "required|email|max:100|unique:members,email,{$id}",
-            'nomor_telepon' => 'required|string|max:15',
-            'alamat' => 'required|string',
-            'status' => 'required|in:aktif,nonaktif',
+            'nama_kategori' => 'required|string|max:100',
         ]);
 
-        $member->update($validated);
+        Category::create($validated);
 
-        return redirect()->route('members.index')
-            ->with('success', "Data anggota \"{$validated['nama']}\" berhasil diperbarui.");
+        return redirect()->route('categories.index')
+            ->with('success', 'Kategori berhasil ditambahkan.');
     }
 
-    public function destroy(string $id)
+    public function edit(Category $category)
     {
-        $member = Member::findOrFail($id);
-        $member->delete();
+        return view('categories.edit', compact('category'));
+    }
 
-        return redirect()->route('members.index')
-            ->with('success', 'Data anggota berhasil dihapus.');
+    public function update(Request $request, Category $category)
+    {
+        $validated = $request->validate([
+            'nama_kategori' => 'required|string|max:100',
+        ]);
+
+        $category->update($validated);
+
+        return redirect()->route('categories.index')
+            ->with('success', 'Kategori berhasil diperbarui.');
+    }
+
+    public function destroy(Category $category)
+    {
+        $category->delete();
+
+        return redirect()->route('categories.index')
+            ->with('success', 'Kategori berhasil dihapus.');
     }
 }

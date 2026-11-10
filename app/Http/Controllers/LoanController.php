@@ -2,47 +2,61 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Loan;
+use App\Models\Member;
+use App\Models\Book;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LoanController extends Controller
 {
     public function index()
     {
-        return 'LoanController@index';
+        $loans = Loan::with(['member', 'user'])->latest()->paginate(10);
+        return view('loans.index', compact('loans'));
     }
 
     public function create()
     {
-        return 'LoanController@create';
+        $members = Member::all();
+        $books = Book::where('stok', '>', 0)->get();
+        return view('loans.create', compact('members', 'books'));
     }
 
     public function store(Request $request)
     {
-        return 'LoanController@store';
+        $validated = $request->validate([
+            'member_id' => 'required|exists:members,id',
+            'tanggal_pinjam' => 'required|date',
+            'tanggal_kembali' => 'required|date|after_or_equal:tanggal_pinjam',
+            'book_ids' => 'required|array|min:1',
+            'book_ids.*' => 'exists:books,id',
+        ]);
+
+        // Simpan transaksi peminjaman (user_id otomatis diambil dari akun login)
+        $loan = Loan::create([
+            'member_id' => $validated['member_id'],
+            'user_id' => Auth::id(),
+            'tanggal_pinjam' => $validated['tanggal_pinjam'],
+            'tanggal_kembali' => $validated['tanggal_kembali'],
+        ]);
+
+        // Simpan ke tabel pivot loan_items
+        $loan->books()->attach($validated['book_ids']);
+
+        return redirect()->route('loans.index')
+            ->with('success', 'Transaksi peminjaman berhasil dicatat.');
     }
 
-    public function show(string $id)
+    public function destroy(Loan $loan)
     {
-        return "LoanController@show, id: {$id}";
-    }
+        // Hapus relasi buku di tabel pivot loan_items terlebih dahulu
+        $loan->books()->detach();
+        
+        // Hapus data transaksi peminjaman
+        $loan->delete();
 
-    public function edit(string $id)
-    {
-        return "LoanController@edit, id: {$id}";
-    }
-
-    public function update(Request $request, string $id)
-    {
-        return "LoanController@update, id: {$id}";
-    }
-
-    public function destroy(string $id)
-    {
-        return "LoanController@destroy, id: {$id}";
-    }
-
-    public function kembalikan(string $id)
-    {
-        return "LoanController@kembalikan, id: {$id}";
+        return redirect()->route('loans.index')
+            ->with('success', 'Data peminjaman berhasil dihapus.');
     }
 }
