@@ -32,7 +32,6 @@ class Loan extends Model
     public function books()
     {
         return $this->belongsToMany(Book::class, 'loan_items')
-                    ->withPivot('jumlah')
                     ->withTimestamps();
     }
 }
